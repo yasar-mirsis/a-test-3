@@ -3,7 +3,10 @@ import helloRouter from './routes/hello';
 import { notFoundHandler } from './middleware/errorHandler';
 
 const app: Express = express();
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT: number = (() => {
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  return isNaN(port) ? 3000 : port;
+})();
 
 // Mount the hello router at /hello
 app.use('/hello', helloRouter);
@@ -19,10 +22,11 @@ const server = app.listen(PORT, () => {
 // Handle server startup errors
 server.on('error', (error: NodeJS.ErrnoException) => {
   if (error.syscall !== 'listen') {
-    throw error;
+    console.error('Unexpected server error:', error);
+    process.exit(1);
   }
 
-  const bind = typeof PORT === 'string' ? `Pipe ${PORT}` : `Port ${PORT}`;
+  const bind = `Port ${PORT}`;
 
   // Handle specific listen errors with friendly messages
   switch (error.code) {
